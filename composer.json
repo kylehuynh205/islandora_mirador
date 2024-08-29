@@ -1,5 +1,5 @@
 {
-  "name": "islandora/islandora_mirador",
+  "name": "drupal/islandora_mirador",
   "description": "Islandora support for Mirador viewer",
   "type": "drupal-module",
   "minimum-stability": "dev",
