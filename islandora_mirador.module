@@ -37,7 +37,15 @@ function template_preprocess_mirador(&$variables) {
 
   // For dsu-utsc.
   if (!empty(\Drupal::hasService('jwt.authentication.jwt'))) {
-    $variables['#attached']['drupalSettings']['token'] = \Drupal::service('jwt.authentication.jwt')->generateToken();
+    $jwtService = \Drupal::service('jwt.authentication.jwt');
+    $token = $jwtService->generateToken();
+
+    // Attach the valid token as a Drupal setting
+    $variables['#attached']['drupalSettings']['token'] = $token;
+
+    // Add cache metadata to limit the cache lifetime
+    $variables['#cache']['max-age'] = 3600; // 1 hour
+    $variables['#cache']['tags'][] = 'jwt_token'; // Add a cache tag to invalidate the cache when the token changes
   }
 
   /**
