@@ -13,6 +13,7 @@ self.addEventListener('fetch', function (event) {
         },
         mode: "cors",
         credentials: "omit"
+        //credentials: "include"
       })
     );
   }

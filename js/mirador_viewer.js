@@ -49,22 +49,42 @@
               Drupal.IslandoraMirador.instances[base] = Mirador.viewer(values, window.miradorPlugins || {})
             });
           });
+
           if (settings.token !== undefined) {
-            if ('serviceWorker' in navigator) {
-              // The Mirador viewer uses img tags for thumbnails so thumbnail image requests
-              // do not have authorization or token headers. Attach them using a service worker.
-              window.addEventListener('load', () => {
-                navigator.serviceWorker
-                  .register('/islandora_mirador_service_worker?token=' + settings.token, { scope: '/' })
-                  .then(registration => {
-                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
+              if ('serviceWorker' in navigator) {
+                // Unregister the existing service worker
+                navigator.serviceWorker.getRegistrations()
+                  .then(registrations => {
+                    registrations.forEach(registration => {
+                      var scope_url = window.location.protocol + "//" + window.location.hostname + "/";
+                      if (registration.scope === scope_url
+                            && registration.waiting != null && registration.waiting.scriptURL.includes('islandora_mirador_service_worker')) {
+                         registration.unregister().then((boolean) => {
+                            // if boolean = true, unregister is successful
+                            if (boolean == true)
+                               console.log("unregister successfully ");
+                         });
+                      }
+                    });
                   })
                   .catch(err => {
-                    console.log('ServiceWorker registration failed: ', err);
+                    console.error('Error unregistering service worker:', err);
+                  })
+                  .finally(() => {
+                    // Register the new service worker with the token
+                    window.addEventListener('load', () => {
+                      navigator.serviceWorker
+                        .register('/islandora_mirador_service_worker?token=' + settings.token, { scope: '/' })
+                        .then(registration => {
+                          console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                        })
+                        .catch(err => {
+                          console.log('ServiceWorker registration failed: ', err);
+                        });
+                    });
                   });
-              });
-            }
-          }
+              }
+           }
       },
       detach: function (context, settings) {
           Object.entries(settings.mirador.viewers).forEach(entry => {
